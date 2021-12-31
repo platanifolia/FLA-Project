@@ -6,4 +6,7 @@
 std::string RemoveStringComment(std::string inputstring);
 
 std::string BracketsSubstring(std::string inputstring);
+
+void IllegalError(int errcode);
+void SyntaxError(int errcode);
 #endif

@@ -31,12 +31,13 @@ int main(int argc, char *argv[])
                 vaildlines.emplace_back(testline);
         }
         TuringMachine testmachine(vaildlines);
+        // testmachine.OutputAllTf();
         // testmachine.OutputMachineContent();
         bool answer = testmachine.StartMachine(argv[2]);
-        if (answer)
-            cout << "true" << endl;
-        else
-            cout << "false" << endl;
+        // if (answer)
+        //     cout << "true";
+        // else
+        //     cout << "false" << endl;
     }
 
     return 0;

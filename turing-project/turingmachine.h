@@ -21,7 +21,9 @@ public:
     char GetTapeSymbol();
     void SetTapeSymbol(char newsymbol);
     void TapeShift(char direction);
-    void CleanBothEnds();
+    void CleanOtherBlank();
+
+    void OutputTape();
 };
 
 class TransferFunction
@@ -30,9 +32,12 @@ private:
     // int tapeindex_;
     std::string srcstate_;
     std::string deststate_;
-    std::vector<char> originalsymbol_;
-    std::vector<char> replacesymbol_;
-    std::vector<char> direction_;
+    // std::vector<char> originalsymbol_;
+    // std::vector<char> replacesymbol_;
+    // std::vector<char> direction_;
+    std::string originalsymbol_;
+    std::string replacesymbol_;
+    std::string direction_;
 
 public:
     TransferFunction(std::string srcstate, std::string deststate, std::string originalsymbol, std::string replacesymbol, std::string direction);
@@ -45,18 +50,32 @@ public:
     {
         return this->deststate_;
     }
-    std::vector<char> GetOriginalSymbols()
+    // std::vector<char> GetOriginalSymbols()
+    // {
+    //     return this->originalsymbol_;
+    // }
+    // std::vector<char> GetReplaceSymbols()
+    // {
+    //     return this->replacesymbol_;
+    // }
+    // std::vector<char> GetDirections()
+    // {
+    //     return this->direction_;
+    // }
+    std::string GetOriginalSymbols()
     {
         return this->originalsymbol_;
     }
-    std::vector<char> GetReplaceSymbols()
+    std::string GetReplaceSymbols()
     {
         return this->replacesymbol_;
     }
-    std::vector<char> GetDirections()
+    std::string GetDirections()
     {
         return this->direction_;
     }
+
+    void OutputAll();
 };
 
 class TuringMachine
@@ -83,11 +102,15 @@ public:
     void FillTapeSet(std::string tapesetline);
     void FillEndStateSet(std::string endstatesetline);
 
-    std::vector<char> GetCurrentTapesSymbols();
+    // std::vector<char> GetCurrentTapesSymbols();
+    std::string GetCurrentTapesSymbols();
 
     bool StartMachine(std::string input);
     bool StateJump();
-
+    bool CheckTmsymbol();
+    bool CheckInputSymbol(std::string input);
+    
+    void OutputAllTf();
     void OutputMachineContent();
 };
 

@@ -31,3 +31,15 @@ string BracketsSubstring(string inputstring)
 {
     return inputstring.substr(inputstring.find_first_of('{') + 1, inputstring.find_first_of('}') - inputstring.find_first_of('{') - 1);
 }
+
+void IllegalError(int errcode)
+{
+    cerr << "illegal input" << endl;
+    exit(errcode);
+}
+
+void SyntaxError(int errcode)
+{
+    cerr << "syntax input" << endl;
+    exit(errcode);
+}

@@ -70,6 +70,7 @@ TuringMachine::TuringMachine(vector<string> vaildlines)
         }
     }
     this->currentstate_ = this->startstate_;
+    this->CheckTmsymbol();
 }
 
 void TuringMachine::FillStateSet(string statesetline)
@@ -141,20 +142,29 @@ void TuringMachine::FillEndStateSet(string endstatesetline)
     return;
 }
 
-vector<char> TuringMachine::GetCurrentTapesSymbols()
+// vector<char> TuringMachine::GetCurrentTapesSymbols()
+// {
+//     vector<char> res;
+//     for (Tape &tape : this->alltape_)
+//     {
+//         res.push_back(tape.GetTapeSymbol());
+//     }
+//     return res;
+// }
+
+string TuringMachine::GetCurrentTapesSymbols()
 {
-    vector<char> res;
+    string res = "";
     for (Tape &tape : this->alltape_)
     {
-        res.push_back(tape.GetTapeSymbol());
+        res += tape.GetTapeSymbol();
     }
     return res;
 }
 
 bool TuringMachine::StartMachine(string input)
 {
-    // TODO: jian cha input symbol
-    bool accept = true;
+    this->CheckInputSymbol(input);
     this->alltape_.emplace_back(0, this->blanksymbol_, input);
     for (int i = 1; i < this->tapenum_; i++)
     {
@@ -164,36 +174,75 @@ bool TuringMachine::StartMachine(string input)
     {
         for (Tape &tape : this->alltape_)
         {
-            tape.CleanBothEnds();
+            tape.CleanOtherBlank();
         }
-        if(!this->StateJump())
+        if (!this->StateJump())
         {
-            accept = false;
-            break;
+            return false;
         }
     }
-    return accept;
+    this->alltape_.at(0).OutputTape();
+    return true;
 }
 
 bool TuringMachine::StateJump()
 {
     for (TransferFunction tf : this->storedtransfer_)
     {
+        // if (tf.GetOriginalSymbols() == this->GetCurrentTapesSymbols())
+        //     cout << "hit! " << tf.GetSrcState() << " " << this->currentstate_ << endl;
         if (tf.GetSrcState() == this->currentstate_ && tf.GetOriginalSymbols() == this->GetCurrentTapesSymbols())
         {
+            // cout << "in it" <<endl;
             for (int i = 0; i < this->tapenum_; i++)
             {
-                this->alltape_.at(i).SetTapeSymbol(tf.GetReplaceSymbols().at(i));
+                this->alltape_.at(i).SetTapeSymbol(tf.GetReplaceSymbols()[i]);
             }
             for (int i = 0; i < this->tapenum_; i++)
             {
-                this->alltape_.at(i).TapeShift(tf.GetDirections().at(i));
+                this->alltape_.at(i).TapeShift(tf.GetDirections()[i]);
             }
             this->currentstate_ = tf.GetDestState();
             return true;
         }
     }
     return false;
+}
+
+bool TuringMachine::CheckTmsymbol()
+{
+    for (auto intr : this->endstateset_)
+    {
+        if (this->stateset_.find(intr) == this->stateset_.end())
+            SyntaxError(3);
+    }
+    for (auto intr : this->inputset_)
+    {
+        if (this->tapeset_.find(intr) == this->tapeset_.end())
+            SyntaxError(3);
+    }
+    for (auto intr : this->tapeset_)
+    {
+        if (intr == ' ' || intr == ',' || intr == ';' || intr == '{' || intr == '}' || intr == '*')
+            SyntaxError(3);
+    }
+    return true;
+}
+
+bool TuringMachine::CheckInputSymbol(string input)
+{
+    for (char temp : input)
+    {
+        if (this->inputset_.find(temp) == this->inputset_.end())
+            IllegalError(4);
+    }
+    return true;
+}
+
+void TuringMachine::OutputAllTf()
+{
+    for (auto intr : this->storedtransfer_)
+        intr.OutputAll();
 }
 
 void TuringMachine::OutputMachineContent()
@@ -226,23 +275,35 @@ void TuringMachine::OutputMachineContent()
     return;
 }
 
-TransferFunction::TransferFunction(std::string srcstate, std::string deststate, std::string originalsymbol, std::string replacesymbol, std::string direction)
+TransferFunction::TransferFunction(string srcstate, string deststate, string originalsymbol, string replacesymbol, string direction)
 {
     this->srcstate_ = srcstate;
     this->deststate_ = deststate;
 
-    for (char temp : originalsymbol)
-    {
-        this->originalsymbol_.emplace_back(temp);
-    }
-    for (char temp : replacesymbol)
-    {
-        this->replacesymbol_.emplace_back(temp);
-    }
-    for (char temp : direction)
-    {
-        this->direction_.emplace_back(temp);
-    }
+    // for (char temp : originalsymbol)
+    // {
+    //     this->originalsymbol_.emplace_back(temp);
+    // }
+    // for (char temp : replacesymbol)
+    // {
+    //     this->replacesymbol_.emplace_back(temp);
+    // }
+    // for (char temp : direction)
+    // {
+    //     this->direction_.emplace_back(temp);
+    // }
+    this->originalsymbol_ = originalsymbol;
+    this->replacesymbol_ = replacesymbol;
+    this->direction_ = direction;
+}
+
+void TransferFunction::OutputAll()
+{
+    cout << this->srcstate_ << " "
+         << this->originalsymbol_ << " "
+         << this->replacesymbol_ << " "
+         << this->direction_ << " "
+         << this->deststate_ << endl;
 }
 
 Tape::Tape(int id, char blank)
@@ -299,21 +360,26 @@ void Tape::TapeShift(char direction)
     }
 }
 
-void Tape::CleanBothEnds()
+void Tape::CleanOtherBlank()
 {
-    // the left end
-    for (auto it = tape_.begin(); it != tape_.end();)
+    for (auto iter = this->tape_.begin(); iter != this->tape_.end();)
     {
-        if (it->second != blank_ or head_ == it->first)
+        if (iter->second != blank_ || head_ == iter->first)
             break;
-        it = tape_.erase(it);
+        iter = this->tape_.erase(iter++);
     }
+}
 
-    // the right end
-    for (auto it = tape_.rbegin(); it != tape_.rend();)
+void Tape::OutputTape()
+{
+    this->CleanOtherBlank();
+    string output;
+    for (auto temp : this->tape_)
     {
-        if (it->second != blank_ or head_ == it->first)
-            break;
-        tape_.erase((++it).base());
+        if (temp.second != this->blank_)
+            output += temp.second;
+        // output += " ";
     }
+    output += "\n";
+    cout << output;
 }
