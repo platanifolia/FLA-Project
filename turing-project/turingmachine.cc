@@ -65,11 +65,24 @@ TuringMachine::TuringMachine(vector<string> vaildlines)
             string newstates;
             tempstringstream >> oldstates >> oldsymbols >> newsymbols >> directions >> newstates;
 
+            for (char iter : oldsymbols)
+            {
+                if (this->tapeset_.find(iter) == this->tapeset_.end())
+                    SyntaxError(2);
+            }
+
+            for (char iter : newsymbols)
+            {
+                if (this->tapeset_.find(iter) == this->tapeset_.end())
+                    SyntaxError(2);
+            }
+
             TransferFunction newtransfer(oldstates, newstates, oldsymbols, newsymbols, directions);
             this->storedtransfer_.emplace_back(newtransfer);
         }
     }
     this->currentstate_ = this->startstate_;
+    this->stepnum_ = 0;
     this->CheckTmsymbol();
 }
 
@@ -164,7 +177,12 @@ string TuringMachine::GetCurrentTapesSymbols()
 
 bool TuringMachine::StartMachine(string input)
 {
-    this->CheckInputSymbol(input);
+    if (!verboseflag)
+        this->CheckInputSymbol(input);
+    else
+    {
+        this->VerboseCheckInputSymbol(input);
+    }
     this->alltape_.emplace_back(0, this->blanksymbol_, input);
     for (int i = 1; i < this->tapenum_; i++)
     {
@@ -176,12 +194,23 @@ bool TuringMachine::StartMachine(string input)
         {
             tape.CleanOtherBlank();
         }
+        if (verboseflag)
+            this->VerboseOutputMachineId();
         if (!this->StateJump())
         {
             return false;
         }
     }
-    this->alltape_.at(0).OutputTape();
+    if (!verboseflag)
+    {
+        this->alltape_.at(0).OutputFirstTape();
+    }
+    else
+    {
+        cout << "Result: ";
+        this->alltape_.at(0).OutputFirstTape();
+        cout << "==================== END ====================" << endl;
+    }
     return true;
 }
 
@@ -203,6 +232,7 @@ bool TuringMachine::StateJump()
                 this->alltape_.at(i).TapeShift(tf.GetDirections()[i]);
             }
             this->currentstate_ = tf.GetDestState();
+            this->stepnum_ += 1;
             return true;
         }
     }
@@ -239,6 +269,38 @@ bool TuringMachine::CheckInputSymbol(string input)
     return true;
 }
 
+bool TuringMachine::VerboseCheckInputSymbol(string input)
+{
+    bool illegal = true;
+    int iter = 0;
+    for (char temp : input)
+    {
+        if (this->inputset_.find(temp) == this->inputset_.end())
+        {
+            illegal = false;
+            break;
+        }
+        iter += 1;
+    }
+
+    if (illegal)
+    {
+        VerboseInputDeal(input, illegal);
+        cout << "==================== RUN ====================" << endl;
+    }
+    else
+    {
+        VerboseInputDeal(input, illegal);
+        cerr << "==================== ERR ====================" << endl;
+        cerr << "error: '" << input[iter] << "' was not declared in the set of input symbols" << endl;
+        VerboseInputDeal(input, illegal);
+        for (int i = 0; i < iter + 7; i++)
+            cerr << " ";
+        cerr << "^" << endl;
+        cerr << "==================== END ====================" << endl;
+    }
+}
+
 void TuringMachine::OutputAllTf()
 {
     for (auto intr : this->storedtransfer_)
@@ -273,6 +335,14 @@ void TuringMachine::OutputMachineContent()
     cout << "====================================" << endl;
     cout << this->tapenum_ << endl;
     return;
+}
+
+void TuringMachine::VerboseOutputMachineId()
+{
+    cout << "Step   :" << this->stepnum_ << endl;
+    for (auto intr : this->alltape_)
+        intr.OutputAllTape();
+    cout << "---------------------------------------------" << endl;
 }
 
 TransferFunction::TransferFunction(string srcstate, string deststate, string originalsymbol, string replacesymbol, string direction)
@@ -370,7 +440,7 @@ void Tape::CleanOtherBlank()
     }
 }
 
-void Tape::OutputTape()
+void Tape::OutputFirstTape()
 {
     this->CleanOtherBlank();
     string output;
@@ -382,4 +452,19 @@ void Tape::OutputTape()
     }
     output += "\n";
     cout << output;
+}
+
+void Tape::OutputAllTape()
+{
+    this->CleanOtherBlank();
+    cout << "Index? :";
+    for (auto intr : this->tape_)
+        cout << intr.first << " ";
+    cout << endl;
+    cout << "Tape?  :";
+    for (auto intr : this->tape_)
+        cout << intr.second << " ";
+    cout << endl;
+    cout << "Head?  :";
+    cout << this->head_ << endl;
 }

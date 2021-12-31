@@ -32,6 +32,11 @@ string BracketsSubstring(string inputstring)
     return inputstring.substr(inputstring.find_first_of('{') + 1, inputstring.find_first_of('}') - inputstring.find_first_of('{') - 1);
 }
 
+void OutputHelp()
+{
+    cout << "usage: turing [-v|--verbose] [-h|--help] <tm> <input>" << endl;
+}
+
 void IllegalError(int errcode)
 {
     cerr << "illegal input" << endl;
@@ -42,4 +47,18 @@ void SyntaxError(int errcode)
 {
     cerr << "syntax input" << endl;
     exit(errcode);
+}
+
+void VerboseInputDeal(string input, bool illegal)
+{
+    if (illegal)
+        cout << "Input: " << input << endl;
+    else
+        cerr << "Input: " << input << endl;
+}
+
+void VerboseInputResult(string input)
+{
+    cout << "Result: " << input << endl;
+    cout << "==================== END ====================" << endl;
 }

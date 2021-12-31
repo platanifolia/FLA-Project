@@ -8,14 +8,31 @@
 
 using namespace std;
 
+bool verboseflag = false;
+
 int main(int argc, char *argv[])
 {
     vector<string> vaildlines;
+    int fileargv = 0;
 
-    if (argc == 3)
+    if (argc > 1)
     {
+        string eachargv = argv[1];
+        if (eachargv == "-v" || eachargv == "--verbose")
+        {
+            verboseflag = true;
+            fileargv = 2;
+        }
+        else if(eachargv == "-h" || eachargv == "--help")
+        {
+            OutputHelp();
+            return 0;
+        }
+        else{
+            fileargv = 1;
+        }
         ifstream turingmachinefile;
-        turingmachinefile.open(argv[1]);
+        turingmachinefile.open(argv[fileargv]);
         if (!turingmachinefile)
         {
             cerr << "error:no file" << endl;
@@ -31,13 +48,7 @@ int main(int argc, char *argv[])
                 vaildlines.emplace_back(testline);
         }
         TuringMachine testmachine(vaildlines);
-        // testmachine.OutputAllTf();
-        // testmachine.OutputMachineContent();
-        bool answer = testmachine.StartMachine(argv[2]);
-        // if (answer)
-        //     cout << "true";
-        // else
-        //     cout << "false" << endl;
+        bool answer = testmachine.StartMachine(argv[fileargv + 1]);
     }
 
     return 0;

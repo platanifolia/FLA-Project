@@ -6,6 +6,8 @@
 #include <vector>
 #include <map>
 
+extern bool verboseflag;
+
 class Tape
 {
 private:
@@ -23,7 +25,8 @@ public:
     void TapeShift(char direction);
     void CleanOtherBlank();
 
-    void OutputTape();
+    void OutputFirstTape();
+    void OutputAllTape();
 };
 
 class TransferFunction
@@ -94,6 +97,8 @@ private:
 
     std::string currentstate_;
 
+    int stepnum_;
+
 public:
     TuringMachine(std::vector<std::string> vaildlines);
 
@@ -109,9 +114,12 @@ public:
     bool StateJump();
     bool CheckTmsymbol();
     bool CheckInputSymbol(std::string input);
+    bool VerboseCheckInputSymbol(std::string input);
     
     void OutputAllTf();
     void OutputMachineContent();
+    void VerboseOutputMachineId();
+
 };
 
 #endif
